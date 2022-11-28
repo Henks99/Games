@@ -1,0 +1,1135 @@
+## How to contribute code
+
+Follow these steps to submit your code contribution.
+
+### Step 1. Open an issue
+
+Before making any changes, we recommend opening an issue (if one doesn't already
+exist) and discussing your proposed changes. This way, we can give you feedback
+and validate the proposed changes.
+
+If the changes are minor (simple bug fix or documentation fix), then feel free
+to open a PR without discussion.
+
+### Step 2. Make code changes
+
+To make code changes, you need to fork the repository. You will need to setup a
+development environment and run the unit tests. This is covered in section
+"Setup environment".
+
+### Step 3. Create a pull request
+
+Once the change is ready, open a pull request from your branch in your fork to
+the master branch in [keras-team/keras](https://github.com/keras-team/keras).
+
+### Step 4. Sign the Contributor License Agreement
+
+After creating the pull request, the `google-cla` bot will comment on your pull
+request with instructions on signing the Contributor License Agreement (CLA) if
+you haven't done so. Please follow the instructions to sign the CLA. A `cla:yes`
+tag is then added to the pull request.
+
+![Tag added](https://i.imgur.com/LHEdIfL.png)
+
+
+### Step 5. Code review
+
+A reviewer will review the pull request and provide comments. The reviewer may
+add a `kokoro:force-run` label to trigger the continuous integration tests.
+
+![CI tests tag](https://i.imgur.com/58NOCB0.png)
+
+If the tests fail, look into the error messages and try to fix it.
+
+![CI tests](https://i.imgur.com/vVY0dZD.png)
+
+There may be
+several rounds of comments and code changes before the pull request gets
+approved by the reviewer.
+
+![Approval from reviewer](https://i.imgur.com/Ywl4ets.png)
+
+### Step 6. Merging
+
+Once the pull request is approved, a `ready to pull` tag will be added to the
+pull request. A team member will take care of the merging.
+
+![Ready to pull](https://i.imgur.com/yCEqJsA.png)
+
+Here is an [example pull request](https://github.com/keras-team/keras/pull/15015)
+for your reference.
+
+## Setup environment
+
+To setup the development environment, We provide two options. One is to use our
+Dockerfile, which builds into a container the required dev tools. Another one is
+to setup a local environment by installing the dev tools needed.
+
+### Option 1: Use a Docker container
+
+We provide a
+[Dockerfile](https://github.com/keras-team/keras/blob/master/.devcontainer/Dockerfile)
+to build the dev environment. You can build the Dockerfile into a Docker image
+named `keras-dev` with the following command at the root directory of your
+cloned repo.
+
+```shell
+docker build -t keras-dev .devcontainer
+```
+
+You can launch a Docker container from the image with the following command. The
+`-it` option gives you an interactive shell of the container. The `-v
+path/to/repo/:/home/keras/` mounts your cloned repo to the container. Replace
+`path/to/repo` with the path to your cloned repo directory.
+
+```shell
+docker run -it -v path/to/repo/:/home/keras/ keras-dev
+```
+
+In the container shell, you need to install the latest dependencies with the
+following command.
+
+```shell
+pip install -r /home/keras/requirements.txt && pip uninstall keras-nightly -y
+```
+
+Now, the environment setup is complete. You are ready to run the tests.
+
+You may modify the Dockerfile to your specific needs, like installing your own
+dev tools. You may also mount more volumes with the `-v` option, like your SSH
+credentials.
+
+Many popular editors today support developing in a container. Here is list of
+[supported editors](https://discuss.tensorflow.org/t/setup-your-favorite-editor-to-develop-keras)
+with setup instructions.
+
+### Option 2: Setup a local environment
+
+To setup your local dev environment, you will need the following tools.
+
+1.  [Bazel](https://bazel.build/) is the tool to build and test Keras. See the
+    [installation guide](https://docs.bazel.build/versions/4.0.0/install.html)
+    for how to install and config bazel for your local environment.
+2.  [git](https://github.com/) for code repository management.
+3.  [python](https://www.python.org/) to build and code in Keras.
+
+The following commands checks the tools above are successfully installed. Note
+that Keras requires at least Python 3.7 to run.
+
+```shell
+bazel --version
+git --version
+python --version
+```
+
+A [Python virtual environment](https://docs.python.org/3/tutorial/venv.html)
+(venv) is a powerful tool to create a self-contained environment that isolates
+any change from the system level config. It is highly recommended to avoid any
+unexpected dependency or version issue.
+
+With the following commands, you create a new venv, named `venv_dir`.
+
+```shell
+mkdir venv_dir
+python3 -m venv venv_dir
+```
+
+You can activate the venv with the following command. You should always run the
+tests with the venv activated. You need to activate the venv every time you open
+a new shell.
+
+```shell
+source venv_dir/bin/activate  # for linux or MacOS
+venv_dir\Scripts\activate.bat  # for Windows
+```
+
+Clone your forked repo to your local machine. Go to the cloned directory to
+install the dependencies into the venv. Since `tf-nightly` uses `keras-nightly`
+as a dependency, we need to uninstall `keras-nightly` so that tests will run
+against Keras code in local workspace.
+
+```shell
+git clone https://github.com/YOUR_GITHUB_USERNAME/keras.git
+cd keras
+pip install -r requirements.txt
+pip uninstall keras-nightly
+```
+
+The environment setup is completed. You may need to update the `tf-nightly`
+version regularly to keep your environment up-to-date with the following
+command.
+
+```shell
+pip install --upgrade tf-nightly
+```
+
+## Code style
+
+The Keras uses [Black](https://black.readthedocs.io/en/stable/) and
+[isort](https://pycqa.github.io/isort/) to format the code. Please refer to
+[requirements.txt](https://github.com/keras-team/keras/blob/master/requirements.txt)
+for the required versions. Run the following command **at the root directory of
+the repo** to format your code.
+
+```
+sh shell/format.sh
+```
+
+It will also display the errors that cannot be resolved by autoformatting. You
+need to follow the output of the command to resolve them manually.
+
+If you do not want to auto format the code but only show the lint errors, you
+can run `sh shell/lint.sh` **at the root directory of the repo**.
+
+### Docstrings
+
+We do not have an automated way to check docstring style, so if you write
+or edit any docstrings, please make sure to check them manually.
+Keras docstrings follow the conventions below:
+
+A **class docstring** may contain the following items:
+
+* One-line description of the class.
+* Paragraph(s) of more detailed information.
+* Optional `Examples` section.
+* `Args` section for arguments in `__init__()`.
+* If it's a layer:
+    * `Call arguments` section for arguments in `Layer.call()`.
+    * `Returns` section for the return values of `Layer.call()`.
+    * Optional `Raises` section for possible errors.
+
+You can check out `MultiHeadAttention` as an example
+[(link)](https://github.com/keras-team/keras/blob/v2.10.0/keras/layers/attention/multi_head_attention.py#L130).
+
+A **function docstring** may contain the following items:
+
+* One-line description of the function.
+* Paragraph(s) of more detailed information.
+* Optional `Examples` section.
+* `Args` section for the function arguments.
+* `Returns` section for the return values.
+* Optional `Raises` section for possible errors.
+
+You can check out `text_dataset_from_directory` as an example
+[(link)](https://github.com/keras-team/keras/blob/v2.10.0/keras/utils/text_dataset.py#L26).
+
+
+## Run tests
+
+We use [Bazel](https://bazel.build/) to build and run the tests.
+
+### Run a test file
+
+For example, to run the tests in `keras/engine/base_layer_test.py`,
+we can run the following command at the root directory of the repo.
+
+```shell
+bazel test keras/engine:base_layer_test
+```
+
+`keras/engine` is the relative path to the directory containing the `BUILD` file
+defining the test. `base_layer_test` is the test target name defined with
+`tf_py_test` in the `BUILD` file.
+
+### Run a single test case
+
+To run a single test, you can use `--test_filter=<your_regex>`
+to use regular expression to match the test you want to run. For example, you
+can use the following command to run all the tests in `activations_test.py`,
+whose names contain `test_serialization`.
+
+```
+bazel test keras:activations_test --test_filter=*test_serialization*
+```
+
+### Run all tests
+
+You can run all the tests locally by running the following command in the repo
+root directory.
+
+```
+bazel test --test_timeout 300,450,1200,3600 --test_output=errors --keep_going --define=use_fast_cpp_protos=false --build_tests_only --build_tag_filters=-no_oss --test_tag_filters=-no_oss keras/...
+```
+
+### Useful configs
+
+Here we provide a list of useful configs you can use with Bazel.
+
+```shell
+bazel test [CONFIGS] [YOUR_TEST]
+```
+
+To use these configs, just replace `[CONFIGS]` with the actual config in the
+command above.
+* `-c opt` enables the optimizations during the build.
+* `--test_sharding_strategy=disabled` disables the sharding so that all the
+  test outputs are in one file.
+  However, it may slow down the tests for not running in parallel
+  and may cause the test to timeout.
+
+## Contributing to Keras applications
+
+Contributions to the
+[pre-trained application library](https://keras.io/api/applications/) are
+welcome. Code for Keras applications is located in Keras repository in
+[keras/applications](https://github.com/keras-team/keras/blob/master/keras/applications).
+When contributing to Keras applications, please keep following checklist in
+mind.
+
+-   Keras applications must implement an established and widely used model.
+    Applications should include a link to a paper describing the architecture of
+    the model with at least 20 citations.
+-   Applications should be provided with pre-trained weights.
+    -   When submitting a pull request for a Keras application, these weights
+        can be provided at any publically available URL (e.g. a personal Cloud
+        Storage bucket). The weights will be uploaded to a Keras storage bucket
+        while merging the pull request.
+    -   Weights should be downloaded with the
+        [get_file()](https://keras.io/api/utils/python_utils/#getfile-function)
+        utility function. Be sure to include the `file_hash` argument, which
+        allows cache invalidation on the downloaded weights. The command line
+        programs `shasum` and `sha256sum` can compute a file hash.
+-   You should help us verify that the accuracy of the model with pre-trained
+    weighted matches the reported results of the cited paper.
+-   You should add any new applications to the unit tests defined in
+    `applications_test.py` and `applications_load_weight_test.py`.
+-   For backwards compatibility, all applications should provide a
+    `preprocess_input()` function. For new applciations, you should leave the
+    function empty (pass through inputs unaltered), and write the model so it
+    can handle raw inputs directly. Adding
+    [preprocessing layers](https://keras.io/guides/preprocessing_layers/) to the
+    application model may help with this. For image applications, a
+    [Rescaling](https://keras.io/api/layers/preprocessing_layers/image_preprocessing/rescaling/)
+    layer at the beginning of the model is often all that is needed.
+-   Once the PR is approved, you should create a companion PR to the keras.io
+    [application page](https://keras.io/api/applications/) updating the
+    "Available Models" section. The contribution guide for keras.io can be found
+    [here](https://github.com/keras-team/keras-io/blob/master/contributor_guide.md).
+-   As every PR requires several CPU/GPU hours of CI testing, we discourage
+    submitting PRs to fix one typo, one warning,etc. We recommend fixing the
+    same issue at the file level at least (e.g.: fix all typos in a file, fix
+    all compiler warning in a file, etc.)
+
+Please go to Stack Overflow for help and support:
+
+https://stackoverflow.com/questions/tagged/keras
+
+If you open a GitHub issue, here is our policy:
+
+1.  It must be a bug, a feature request, or a significant problem with the
+    documentation (for small docs fixes please send a PR instead).
+2.  The form below must be filled out.
+
+**Here's why we have that policy**: Keras developers respond to issues. We want to focus on work that benefits the whole community, e.g., fixing bugs and adding features. Support only helps individuals. GitHub also notifies thousands of people when issues are filed. We want them to see you communicating an interesting problem, rather than being redirected to Stack Overflow.
+
+------------------------
+
+### System information
+
+-   **Have I written custom code (as opposed to using a stock example script
+    provided in Keras)**:
+-   **OS Platform and Distribution (e.g., Linux Ubuntu 16.04)**:
+-   **TensorFlow installed from (source or binary)**:
+-   **TensorFlow version (use command below)**:
+-   **Python version**:
+-   **Bazel version (if compiling from source)**:
+-   **GPU model and memory**:
+-   **Exact command to reproduce**:
+
+You can collect some of this information using our environment capture script:
+
+https://github.com/tensorflow/tensorflow/tree/master/tools/tf_env_collect.sh
+
+You can obtain the TensorFlow version with:
+
+```bash
+python -c "import tensorflow as tf; print(tf.version.GIT_VERSION, tf.version.VERSION)"
+```
+
+### Describe the problem
+Describe the problem clearly here. Be sure to convey here why it's a bug in Keras or why the requested feature is needed.
+
+### Source code / logs
+Include any logs or source code that would be helpful to diagnose the problem. If including tracebacks, please include the full traceback. Large logs and files should be attached. Try to provide a reproducible test case that is the bare minimum necessary to generate the problem.
+
+
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+# Keras: Deep Learning for humans
+
+![Keras logo](https://s3.amazonaws.com/keras.io/img/keras-logo-2018-large-1200.png)
+
+This repository hosts the development of the Keras library.
+Read the documentation at [keras.io](https://keras.io/).
+
+## About Keras
+
+Keras is a deep learning API written in Python,
+running on top of the machine learning platform [TensorFlow](https://github.com/tensorflow/tensorflow).
+It was developed with a focus on enabling fast experimentation.
+*Being able to go from idea to result as fast as possible is key to doing good research.*
+
+Keras is:
+
+-   **Simple** -- but not simplistic. Keras reduces developer *cognitive load*
+    to free you to focus on the parts of the problem that really matter.
+-   **Flexible** -- Keras adopts the principle of *progressive disclosure of
+    complexity*: simple workflows should be quick and easy, while arbitrarily
+    advanced workflows should be *possible* via a clear path that builds upon
+    what you've already learned.
+-   **Powerful** -- Keras provides industry-strength performance and
+    scalability: it is used by organizations and companies including NASA,
+    YouTube, and Waymo.
+
+---
+
+## Keras & TensorFlow 2
+
+[TensorFlow 2](https://www.tensorflow.org/) is an end-to-end, open-source machine learning platform.
+You can think of it as an infrastructure layer for
+[differentiable programming](https://en.wikipedia.org/wiki/Differentiable_programming).
+It combines four key abilities:
+
+- Efficiently executing low-level tensor operations on CPU, GPU, or TPU.
+- Computing the gradient of arbitrary differentiable expressions.
+- Scaling computation to many devices, such as clusters of hundreds of GPUs.
+- Exporting programs ("graphs") to external runtimes such as servers, browsers, mobile and embedded devices.
+
+Keras is the high-level API of TensorFlow 2: an approachable, highly-productive interface
+for solving machine learning problems,
+with a focus on modern deep learning. It provides essential abstractions and building blocks for developing
+and shipping machine learning solutions with high iteration velocity.
+
+Keras empowers engineers and researchers to take full advantage of the scalability
+and cross-platform capabilities of TensorFlow 2: you can run Keras on TPU or on large clusters of GPUs,
+and you can export your Keras models to run in the browser or on a mobile device.
+
+---
+
+## First contact with Keras
+
+The core data structures of Keras are __layers__ and __models__.
+The simplest type of model is the [`Sequential` model](/guides/sequential_model/), a linear stack of layers.
+For more complex architectures, you should use the [Keras functional API](/guides/functional_api/),
+which allows you to build arbitrary graphs of layers or [write models entirely from scratch via subclassing](/guides/making_new_layers_and_models_via_subclassing/).
+
+Here is the `Sequential` model:
+
+```python
+from tensorflow.keras.models import Sequential
+
+model = Sequential()
+```
+
+Stacking layers is as easy as `.add()`:
+
+```python
+from tensorflow.keras.layers import Dense
+
+model.add(Dense(units=64, activation='relu'))
+model.add(Dense(units=10, activation='softmax'))
+```
+
+Once your model looks good, configure its learning process with `.compile()`:
+
+```python
+model.compile(loss='categorical_crossentropy',
+              optimizer='sgd',
+              metrics=['accuracy'])
+```
+
+If you need to, you can further configure your optimizer. The Keras philosophy is to keep simple things simple,
+while allowing the user to be fully in control when they need to (the ultimate control being the easy extensibility of the source code via subclassing).
+
+```python
+model.compile(loss=tf.keras.losses.categorical_crossentropy,
+              optimizer=tf.keras.optimizers.SGD(
+                  learning_rate=0.01, momentum=0.9, nesterov=True))
+```
+
+You can now iterate on your training data in batches:
+
+```python
+# x_train and y_train are Numpy arrays.
+model.fit(x_train, y_train, epochs=5, batch_size=32)
+```
+
+Evaluate your test loss and metrics in one line:
+
+```python
+loss_and_metrics = model.evaluate(x_test, y_test, batch_size=128)
+```
+
+Or generate predictions on new data:
+
+```python
+classes = model.predict(x_test, batch_size=128)
+```
+
+What you just saw is the most elementary way to use Keras.
+
+However, Keras is also a highly-flexible framework suitable to iterate on state-of-the-art research ideas.
+Keras follows the principle of **progressive disclosure of complexity**: it makes it easy to get started,
+yet it makes it possible to handle arbitrarily advanced use cases,
+only requiring incremental learning at each step.
+
+In much the same way that you were able to train & evaluate a simple neural network above in a few lines,
+you can use Keras to quickly develop new training procedures or exotic model architectures.
+Here's a low-level training loop example, combining Keras functionality with the TensorFlow `GradientTape`:
+
+```python
+import tensorflow as tf
+
+# Prepare an optimizer.
+optimizer = tf.keras.optimizers.Adam()
+# Prepare a loss function.
+loss_fn = tf.keras.losses.kl_divergence
+
+# Iterate over the batches of a dataset.
+for inputs, targets in dataset:
+    # Open a GradientTape.
+    with tf.GradientTape() as tape:
+        # Forward pass.
+        predictions = model(inputs)
+        # Compute the loss value for this batch.
+        loss_value = loss_fn(targets, predictions)
+
+    # Get gradients of loss wrt the weights.
+    gradients = tape.gradient(loss_value, model.trainable_weights)
+    # Update the weights of the model.
+    optimizer.apply_gradients(zip(gradients, model.trainable_weights))
+```
+
+For more in-depth tutorials about Keras, you can check out:
+
+-   [Introduction to Keras for engineers](https://keras.io/getting_started/intro_to_keras_for_engineers/)
+-   [Introduction to Keras for researchers](https://keras.io/getting_started/intro_to_keras_for_researchers/)
+-   [Developer guides](https://keras.io/guides/)
+-   [Other learning resources](https://keras.io/getting_started/learning_resources/)
+
+---
+
+## Installation
+
+Keras comes packaged with TensorFlow 2 as `tensorflow.keras`.
+To start using Keras, simply [install TensorFlow 2](https://www.tensorflow.org/install).
+
+---
+
+## Release and compatibility
+
+Keras has **nightly releases** (`keras-nightly` on PyPI)
+and **stable releases** (`keras` on PyPI).
+The nightly Keras releases are usually compatible with the corresponding version
+of the `tf-nightly` releases
+(e.g. `keras-nightly==2.7.0.dev2021100607` should be
+used with `tf-nightly==2.7.0.dev2021100607`).
+We don't maintain backward compatibility for nightly releases.
+For stable releases, each Keras
+version maps to a specific stable version of TensorFlow.
+
+The table below shows the compatibility version mapping
+between TensorFlow versions and Keras versions.
+
+All the release branches can be found on [GitHub](https://github.com/keras-team/keras/releases).
+
+All the release binaries can be found on [Pypi](https://pypi.org/project/keras/#history).
+
+| Keras release | Note      | Compatible Tensorflow version |
+| -----------   | ----------- | -----------        |
+| [2.4](https://github.com/keras-team/keras/releases/tag/2.4.0)  | Last stable release of multi-backend Keras | < 2.5
+| 2.5-pre| Pre-release (not formal) for standalone Keras repo | >= 2.5 < 2.6
+| [2.6](https://github.com/keras-team/keras/releases/tag/v2.6.0)    | First formal release of standalone Keras.  | >= 2.6 < 2.7
+| [2.7](https://github.com/keras-team/keras/releases/tag/v2.7.0-rc0)    | (Upcoming release) | >= 2.7 < 2.8
+| nightly|                                            | tf-nightly
+
+---
+## Support
+
+You can ask questions and join the development discussion:
+
+- In the [TensorFlow forum](https://discuss.tensorflow.org/).
+- On the [Keras Google group](https://groups.google.com/forum/#!forum/keras-users).
+
+---
+
+## Opening an issue
+
+You can also post **bug reports and feature requests** (only)
+in [GitHub issues](https://github.com/keras-team/keras/issues).
+
+
+---
+
+## Opening a PR
+
+We welcome contributions! Before opening a PR, please read
+[our contributor guide](https://github.com/keras-team/keras/blob/master/CONTRIBUTING.md),
+and the [API design guideline](https://github.com/keras-team/governance/blob/master/keras_api_design_guidelines.md).
+
+# All the required dependencies should come with tf-nightly package.
+# The rest of the packages are mostly used for testing purpose.
+pandas
+pydot
+scipy ~= 1.7.2
+tf-nightly
+portpicker
+pyyaml
+Pillow
+numpy ~= 1.21.4  # Sync with the numpy version used in TF
+black==22.3.0
+isort==5.10.1
+flake8==4.0.1
+[isort]
+force_single_line=True
+known_first_party=keras
+line_length=80
+profile=black
+
+[flake8]
+# imported but unused in __init__.py, that's ok.
+per-file-ignores=*__init__.py:F401
+ignore=E203,W503,F632,E266,E731,E712,E741
+max-line-length=80
+
+workspace(name = "org_keras")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# Needed by protobuf
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+http_archive(
+    name = "bazel_skylib",
+    url = "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.1/bazel-skylib-1.0.1.tar.gz",
+    sha256 = "f1c8360c01fcf276778d3519394805dc2a71a64274a3a0908bc9edff7b5aebc8",
+)
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+bazel_skylib_workspace()
+
+# Needed by protobuf
+http_archive(
+    name = "six_archive",
+    build_file = "//third_party:six.BUILD",
+    sha256 = "d16a0141ec1a18405cd4ce8b4613101da75da0e9a7aec5bdd4fa804d0e0eba73",
+    strip_prefix = "six-1.12.0",
+    urls = [
+        "http://mirror.bazel.build/pypi.python.org/packages/source/s/six/six-1.12.0.tar.gz",
+        "https://pypi.python.org/packages/source/s/six/six-1.12.0.tar.gz",  # 2018-12-10
+    ],
+)
+
+bind(
+    name = "six",
+    actual = "@six_archive//:six",
+)
+
+http_archive(
+    name = "com_google_protobuf",
+    sha256 = "1fbf1c2962af287607232b2eddeaec9b4f4a7a6f5934e1a9276e9af76952f7e0",
+    strip_prefix = "protobuf-3.9.2",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.9.2.tar.gz"],
+)
+
+# ZLIB. Need by com_google_protobuf.
+http_archive(
+    name = "zlib",
+    build_file = "@com_google_protobuf//:third_party/zlib.BUILD",
+    sha256 = "b3a24de97a8fdbc835b9833169501030b8977031bcb54b3b3ac13740f846ab30",
+    strip_prefix = "zlib-1.2.13",
+    urls = [
+      "https://storage.googleapis.com/mirror.tensorflow.org/zlib.net/zlib-1.2.13.tar.gz",
+      "https://zlib.net/zlib-1.2.13.tar.gz",
+      ],
+)
+
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+protobuf_deps()
+
+# TensorFlow Bazel configuration file.
+# This file tries to group and simplify build options for TensorFlow
+#
+# ----CONFIG OPTIONS----
+#
+# Other build options:
+#     short_logs:       Only log errors during build, skip warnings.
+#     verbose_logs:     Show all compiler warnings during build.
+#     monolithic:       Build all TF C++ code into a single shared object.
+#     dynamic_kernels:  Try to link all kernels dynamically (experimental).
+#     libc++:           Link against libc++ instead of stdlibc++
+##
+# TF version options;
+#     v1: Build TF V1 (without contrib)
+#     v2: Build TF v2
+#
+# Feature and Third party library support options:
+#     xla:          Build TF with XLA
+#     tpu:          Build TF with TPU support
+#     using_cuda:   CUDA is available to build system.
+#     cuda:         Build with full cuda support.
+#     rocm:         Build with AMD GPU support (rocm).
+#     mkl:          Enable full mkl support.
+#     tensorrt:     Enable Tensorrt support.
+#     numa:         Enable numa using hwloc.
+#     noaws:        Disable AWS S3 storage support
+#     nogcp:        Disable GCS support.
+#     nohdfs:       Disable hadoop hdfs support.
+#     nonccl:       Disable nccl support.
+
+# Sets the default Apple platform to macOS.
+build --apple_platform_type=macos
+
+# Flags for open source build, always set to be true.
+build --define open_source_build=true
+test --define open_source_build=true
+
+# For workaound the use_fast_cpp_protos issue in protobuf deps.
+build --define=use_fast_cpp_protos=false
+test --define=use_fast_cpp_protos=false
+
+# This config refers to building with CUDA available. It does not necessarily
+# mean that we build CUDA op kernels.
+build:using_cuda --define=using_cuda=true
+build:using_cuda --action_env TF_NEED_CUDA=1
+build:using_cuda --crosstool_top=@local_config_cuda//crosstool:toolchain
+
+# Enable the mlir generated GPU kernels only for cuda builds.
+build --define=tensorflow_enable_mlir_generated_gpu_kernels=0
+# This is a more specific option, so it takes precedence over the line above for cuda builds.
+build:using_cuda --define=tensorflow_enable_mlir_generated_gpu_kernels=1
+
+# This config refers to building CUDA op kernels with nvcc.
+build:cuda --config=using_cuda
+build:cuda --define=using_cuda_nvcc=true
+
+# dbg config, as a shorthand for '--config=opt -c dbg'
+build:dbg --config=opt -c dbg
+# for now, disable arm_neon. see: https://github.com/tensorflow/tensorflow/issues/33360
+build:dbg --cxxopt -DTF_LITE_DISABLE_X86_NEON
+# AWS SDK must be compiled in release mode. see: https://github.com/tensorflow/tensorflow/issues/37498
+build:dbg --copt -DDEBUG_BUILD
+
+build:tensorrt --action_env TF_NEED_TENSORRT=1
+
+build:rocm --crosstool_top=@local_config_rocm//crosstool:toolchain
+build:rocm --define=using_rocm=true --define=using_rocm_hipcc=true
+build:rocm --action_env TF_NEED_ROCM=1
+
+# Options extracted from configure script
+build:numa --define=with_numa_support=true
+
+# Options to disable default on features
+build:noaws --define=no_aws_support=true
+build:nogcp --define=no_gcp_support=true
+build:nohdfs --define=no_hdfs_support=true
+build:nonccl --define=no_nccl_support=true
+
+build --define=allow_oversize_protos=true
+
+build --spawn_strategy=standalone
+build -c opt
+
+# Make Bazel print out all options from rc files.
+build --announce_rc
+
+# Other build flags.
+build --define=grpc_no_ares=true
+
+build:linux --copt=-w
+build:linux --host_copt=-w
+build:macos --copt=-w
+build:windows --copt=/W0
+
+# Tensorflow uses M_* math constants that only get defined by MSVC headers if
+# _USE_MATH_DEFINES is defined.
+build:windows --copt=/D_USE_MATH_DEFINES
+build:windows --host_copt=/D_USE_MATH_DEFINES
+
+# Default paths for TF_SYSTEM_LIBS
+build:linux --define=PREFIX=/usr
+build:linux --define=LIBDIR=$(PREFIX)/lib
+build:linux --define=INCLUDEDIR=$(PREFIX)/include
+build:linux --define=PROTOBUF_INCLUDE_PATH=$(PREFIX)/include
+build:macos --define=PREFIX=/usr
+build:macos --define=LIBDIR=$(PREFIX)/lib
+build:macos --define=INCLUDEDIR=$(PREFIX)/include
+build:macos --define=PROTOBUF_INCLUDE_PATH=$(PREFIX)/include
+# TF_SYSTEM_LIBS do not work on windows.
+
+# On windows, we still link everything into a single DLL.
+build:windows --config=monolithic
+
+# On linux, we dynamically link small amount of kernels
+build:linux --config=dynamic_kernels
+
+# Make sure to include as little of windows.h as possible
+build:windows --copt=-DWIN32_LEAN_AND_MEAN
+build:windows --host_copt=-DWIN32_LEAN_AND_MEAN
+build:windows --copt=-DNOGDI
+build:windows --host_copt=-DNOGDI
+
+# MSVC (Windows): Standards-conformant preprocessor mode
+# See https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview
+build:windows --copt=/experimental:preprocessor
+build:windows --host_copt=/experimental:preprocessor
+
+# Misc build options we need for windows.
+build:windows --linkopt=/DEBUG
+build:windows --host_linkopt=/DEBUG
+build:windows --linkopt=/OPT:REF
+build:windows --host_linkopt=/OPT:REF
+build:windows --linkopt=/OPT:ICF
+build:windows --host_linkopt=/OPT:ICF
+build:windows --experimental_strict_action_env=true
+
+# Verbose failure logs when something goes wrong
+build:windows --verbose_failures
+
+# On windows, we never cross compile
+build:windows --distinct_host_configuration=false
+
+# Suppress all warning messages.
+build:short_logs --output_filter=DONT_MATCH_ANYTHING
+build:verbose_logs --output_filter=
+build --config=short_logs
+
+# Options to build TensorFlow 1.x or 2.x.
+build:v1 --define=tf_api_version=1
+build:v2 --define=tf_api_version=2
+build:v1 --action_env=TF2_BEHAVIOR=0
+build:v2 --action_env=TF2_BEHAVIOR=1
+build --config=v2
+test --config=v2
+
+# Enable XLA
+build:xla --define=with_xla_support=true
+
+# macOS
+.DS_Store
+
+# Python temp files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Vim temp files
+*.swp
+*.swo
+
+# VS Code configs
+.devcontainer
+.vscode
+
+# Bazel files
+bazel-bin
+bazel-keras
+bazel-out
+bazel-testlogs
+
+py_library(
+    name = "expect_absl_installed",
+    # This is a dummy rule used as a absl dependency in open-source.
+    # We expect absl to already be installed on the system, e.g. via
+    # `pip install absl`
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+py_library(
+    name = "expect_h5py_installed",
+    # This is a dummy rule used as a h5 dependency in open-source.
+    # We expect h5py to already be installed on the system, e.g. via
+    # `pip install h5py'
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+py_library(
+    name = "expect_numpy_installed",
+    # This is a dummy rule used as a numpy dependency in open-source.
+    # We expect numpy to already be installed on the system, e.g. via
+    # `pip install numpy`
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+py_library(
+    name = "expect_pandas_installed",
+    # This is a dummy rule used as a pandas dependency in open-source.
+    # We expect pandas to already be installed on the system, e.g. via
+    # `pip install pandas'
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+py_library(
+    name = "expect_pillow_installed",
+    # This is a dummy rule used as a pillow dependency in open-source.
+    # We expect pillow to already be installed on the system, e.g. via
+    # `pip install Pillow'
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+# Note that this dependency is for testing only.
+py_library(
+    name = "expect_portpicker_installed",
+    # This is a dummy rule used as a pandas dependency in open-source.
+    # We expect portpicker to already be installed on the system, e.g. via
+    # `pip install portpicker'
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+py_library(
+    name = "expect_pydot_installed",
+    # This is a dummy rule used as a pydot dependency in open-source.
+    # We expect pydot to already be installed on the system, e.g. via
+    # `pip install pydot'
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+py_library(
+    name = "expect_scipy_installed",
+    # This is a dummy rule used as a scipy dependency in open-source.
+    # We expect scipy to already be installed on the system, e.g. via
+    # `pip install scipy'
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+py_library(
+    name = "expect_six_installed",
+    # This is a dummy rule used as a six dependency in open-source.
+    # We expect six to already be installed on the system, e.g. via
+    # `pip install six`
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+py_library(
+    name = "expect_tensorboard_installed",
+    # This is a dummy rule used as a tensorboard dependency in open-source.
+    # We expect tensorboard to already be installed on the system, e.g. via
+    # `pip install tensorflow`
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+py_library(
+    name = "expect_tensorflow_installed",
+    # This is a dummy rule used as a tensorflow dependency in open-source.
+    # We expect tensorflow to already be installed on the system, e.g. via
+    # `pip install tensorflow`
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+py_library(
+    name = "expect_yaml_installed",
+    # This is a dummy rule used as a yaml dependency in open-source.
+    # We expect yaml to already be installed on the system, e.g. via
+    # `pip install yaml`
+    visibility = ["//visibility:public"],
+    deps = [],
+)
